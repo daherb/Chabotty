@@ -3,8 +3,10 @@
 ; Datenstrukturen laden
 
 (load "config.lsp")
-(load "data.fas")
-(load "sio.fas")
+;(load "data.fas")
+;(load "sio.fas")
+(load "data.lsp")
+(load "sio.lsp")
 
 (read-data "woerter.lst" "saetze.lst")
 
