@@ -16,13 +16,13 @@
   ; Type of sentence: question or statement
   (cond 
     ((search "?" line)
-      (setq typ "f")
+      (setq typ "q")
     )
     (t
       (setq typ "a")
     )
   )
-  (setq id (+ (car (car lsaetze)) 1))
+  (setq id (+ (car (car lphrases)) 1))
   ; Remove special characters
   (setq line2 (string-trim '(#\, #\. #\! #\? #\") line)) ;"  
   (setq parts nil)
@@ -87,7 +87,7 @@
       ; Align order of answers to order of discoveries
       (setq antworten (reverse antworten))    
       ; Sort answers by type
-      (setq antworten (sort antworten 'my-typ-test))
+      (setq antworten (sort antworten 'my-type-test))
       ; Fraction
       (cond 
         ((not (= anzahl-fragen 0))
@@ -147,7 +147,7 @@
 )
 
 ; My test to sort by type
-(defun my-typ-test (a b)
+(defun my-type-test (a b)
   (string> (cadr a) (cadr b))
 )
 
@@ -179,6 +179,7 @@
   (do ((ct 0 0))
     (nil)
       (setq line (read-line socket)) 
+      (print line)
       (cond 
         ((search "privmsg" (string-downcase line))
           (cond 
