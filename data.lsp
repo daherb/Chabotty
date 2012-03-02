@@ -1,43 +1,43 @@
 
-; Konfiguration laden
+; Load the config
 (load "config.lsp")
 
-; Struktur für die Suchfunde
-(defstruct fund
+; Strukture for findings
+(defstruct finding
   id
-  menge
+  set
 )
 
-; Saetze und Wörter aus den Dateien laden
-(defun read-data (woerter saetze)
-  (setq lsaetze nil)
-  (setq lwoerter nil)
-  (setq datei (open woerter :direction :input :if-does-not-exist :error))
-  (setq lwoerter (read datei))
+; Load phrases and words from files
+(defun read-data (words phrases)
+  (setq lphrases nil)
+  (setq lwords nil)
+  (setq datei (open words :direction :input :if-does-not-exist :error))
+  (setq lwords (read datei))
   (close datei)
-  (setq datei (open saetze :direction :input :if-does-not-exist :error))
-  (setq lsaetze (read datei))
-  (close datei)
-)
-
-; Woerter und Saetze speichern
-(defun save-data (woerter saetze)
-  (setq datei (open woerter :direction :output :if-exists :overwrite :if-does-not-exist :create))
-  (print lwoerter datei)
-  (close datei)
-  ;(save-words-rec datei (reverse lwoerter)) 
-  (setq datei (open saetze :direction :output :if-exists :overwrite :if-does-not-exist :create))
-  (print lsaetze datei)
+  (setq datei (open phrases :direction :input :if-does-not-exist :error))
+  (setq lphrases (read datei))
   (close datei)
 )
 
-; Neuen Satz einfügen
-(defun new-phrase (id satz typ)
+; Save words and phrases
+(defun save-data (words phrases)
+  (setq datei (open words :direction :output :if-exists :overwrite :if-does-not-exist :create))
+  (print lwords datei)
+  (close datei)
+  ;(save-words-rec datei (reverse lwords)) 
+  (setq datei (open phrases :direction :output :if-exists :overwrite :if-does-not-exist :create))
+  (print lphrases datei)
+  (close datei)
+)
+
+; Add new phrase
+(defun new-phrase (id phrase typ)
   (setq schonda nil)
   (do ((ct 0 (+ 1 ct)))
-    ((= ct (length lsaetze)))
+    ((= ct (length lphrases)))
       (cond 
-        ((equal (string-downcase (cadr (nth ct lsaetze))) (string-downcase satz))
+        ((equal (string-downcase (cadr (nth ct lphrases))) (string-downcase phrase))
           (setq schonda t)
         )
       )
@@ -45,91 +45,88 @@
   (cond 
     ((not schonda)
       (setq ltemp nil)
-      (setq ltemp (cons id (cons satz (cons typ ltemp))))
-      (setq lsaetze (cons ltemp lsaetze))
+      (setq ltemp (cons id (cons phrase (cons typ ltemp))))
+      (setq lphrases (cons ltemp lphrases))
       t
     )
     (t nil)
   )
 )
 
-; Neues Wort einfügen
-(defun new-word (wort id)
-  (setq schwarz nil)
-  ; Überprüfen ob Wort in Blacklist ist
+; Add new word
+(defun new-word (word id)
+  (setq black nil)
+  ; Check if word is blacklisted
   (do ((i 0 (+ 1 i)))
     ((equal i (length blacklist)))
       (cond 
-        ((equal (nth i blacklist) wort)
-          (setq schwarz t)
+        ((equal (nth i blacklist) word)
+          (setq black t)
         )
       )     
   )
   (cond 
-    ((not schwarz)
+    ((not black)
       (setq ltemp nil)
-      (setq ltemp (cons (string-downcase wort) (cons id ltemp)))
-      (setq lwoerter (cons ltemp lwoerter))
+      (setq ltemp (cons (string-downcase word) (cons id ltemp)))
+      (setq lwords (cons ltemp lwords))
     )
   )
 )
 
-; Satz anhand der id
+; Get Phrase by id
 (defun get-phrase (id)
-  (get-phrase-rec id lsaetze)  
+  (get-phrase-rec id lphrases)  
 )
-; Entsprechende rekursive Funktion
-(defun get-phrase-rec (id daten)
+(defun get-phrase-rec (id data)
   (cond 
-    ((not (null daten))      
+    ((not (null data))      
       (cond 
-        ((equal (caar daten) id)
-          (return-from get-phrase-rec (cdar daten))
+        ((equal (caar data) id)
+          (return-from get-phrase-rec (cdar data))
         )
       )
-      (get-phrase-rec id (cdr daten))
+      (get-phrase-rec id (cdr data))
     )
     (t nil)
   )
 )
 
-; Woerter in Daten suchen
-(defun find-word (swort funde)
-  (find-word-rec swort lwoerter funde)
+; Look for words in data
+(defun find-word (sword findings)
+  (find-word-rec sword lwords findings)
 )
-
-; Entsprechende Rekursions-Funktion
-(defun find-word-rec (wort daten funde)
+(defun find-word-rec (word data findings)
   (cond 
-    ((not (null daten))      
+    ((not (null data))      
       (cond 
-        ((equal (caar daten) (string-downcase wort))
-          (setq funde (look-if-there-is-the-phrase-and-add-it-if-it-does-not-exist-or-add-one-to-the-amount-of-places-of-discovery-in-a-recursive-way (cadar daten) funde funde nil))
+        ((equal (caar data) (string-downcase word))
+          (setq findings (look-if-there-is-the-phrase-and-add-it-if-it-does-not-exist-or-add-one-to-the-amount-of-places-of-discovery-in-a-recursive-way (cadar data) findings findings nil))
         )
       )
-      (find-word-rec wort (cdr daten) funde)
+      (find-word-rec word (cdr data) findings)
     )
-    (t funde)
+    (t findings)
   )
 )
 
-; Funktion mit selbsterklärendem Namen
-(defun look-if-there-is-the-phrase-and-add-it-if-it-does-not-exist-or-add-one-to-the-amount-of-places-of-discovery-in-a-recursive-way (id funde alles treffer) 
+; Self commentarial name
+(defun look-if-there-is-the-phrase-and-add-it-if-it-does-not-exist-or-add-one-to-the-amount-of-places-of-discovery-in-a-recursive-way (id findings all hit) 
   (cond 
-    ((not (null funde))      
+    ((not (null findings))      
       (cond 
-        ((eq (fund-id (car funde)) id)
-          (setf (fund-menge (car funde)) (+ (fund-menge (car funde)) 1))
-          (setq treffer t)
+        ((eq (fund-id (car findings)) id)
+          (setf (fund-set (car findings)) (+ (fund-set (car findings)) 1))
+          (setq hit t)
         )
       )
-      (look-if-there-is-the-phrase-and-add-it-if-it-does-not-exist-or-add-one-to-the-amount-of-places-of-discovery-in-a-recursive-way id (cdr funde) alles treffer)
+      (look-if-there-is-the-phrase-and-add-it-if-it-does-not-exist-or-add-one-to-the-amount-of-places-of-discovery-in-a-recursive-way id (cdr findings) all hit)
     )
-    ((not treffer)
-      (setq alles (cons (make-fund :id id :menge 1) alles))
-      (setq treffer t)
-      (look-if-there-is-the-phrase-and-add-it-if-it-does-not-exist-or-add-one-to-the-amount-of-places-of-discovery-in-a-recursive-way id (cdr funde) alles treffer)
+    ((not hit)
+      (setq all (cons (make-fund :id id :set 1) all))
+      (setq hit t)
+      (look-if-there-is-the-phrase-and-add-it-if-it-does-not-exist-or-add-one-to-the-amount-of-places-of-discovery-in-a-recursive-way id (cdr findings) all hit)
     )
-    (t alles)
+    (t all)
   )
 )

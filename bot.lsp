@@ -8,14 +8,14 @@
 (load "data.lsp")
 (load "sio.lsp")
 
-(read-data "woerter.lst" "saetze.lst")
+(read-data "word.lst" "sentence.lst")
 
-; Eingabedaten verarbeiten, in Datenstruktur einfügen und Kriterien für Antwort liefern
-(defun handle-phrase (zeile)
-  (format t zeile)
-  ; Satztyp bestimmen: Aussage oder Frage
+; Handle input, add new data and find answer
+(defun handle-phrase (line)
+  (format t line)
+  ; Type of sentence: question or statement
   (cond 
-    ((search "?" zeile)
+    ((search "?" line)
       (setq typ "f")
     )
     (t
@@ -23,58 +23,58 @@
     )
   )
   (setq id (+ (car (car lsaetze)) 1))
-  ; Alle Satzzeichen entfernen
-  (setq zeile2 (string-trim '(#\, #\. #\! #\? #\") zeile)) ;"  
-  (setq teile nil)
-  ; Zeile zerteilen
-  (cut-line-rec " " zeile2)
-  ; Satz in Daten einfügen
-  ; Wenn erfolgreich Wörter einfuegen
-  (new-phrase id zeile typ)
+  ; Remove special characters
+  (setq line2 (string-trim '(#\, #\. #\! #\? #\") line)) ;"  
+  (setq parts nil)
+  ; Split line
+  (cut-line-rec " " line2)
+  ; Add sentence
+  (new-phrase id line typ)
   (cond
+    ; If not already present
     ((not schonda)
-      ; Woerter in Daten einfügen
-      (add-words-rec id teile)
-      ; Daten speichern
-      (save-data "woerter.lst" "saetze.lst")
+      ; Add words
+      (add-words-rec id parts)
+      ; Save data
+      (save-data "word.lst" "sentence.lst")
     )
   )
-  ; Antwort suchen
-  (answer teile)
+  ; Find an answer
+  (answer parts)
 )
 
-; Passende antworden suchen
-(defun answer (teile)
+; Find suitable answer
+(defun answer (parts)
   (setq funde nil)
-  ; Vorkommnisse aller Wörter suchen
-  (setq funde (find-all-words-rec teile funde))
+  ; Find all occurences of words
+  (setq funde (find-all-words-rec parts funde))
   (cond 
-    ; Wenn keine Antwort vorhanden Standartantwort ausgeben
+    ; Give default answer if no answer found
     ((= (length funde) 1) 
       (return-from answer standart-antwort)
     )
-    ; Wenn nur eine Antwort vorhanden diese ausgeben ohne den ganzen Mist durchzumachen
+    ; Skip rest if only one answer founf
     ((= (length funde) 2)
       (return-from answer (car (get-phrase (fund-id (car funde)))))
     )
     (t
-      ; Gunde nach Menge suchen
+      ; Sort discoveries by set
       (setq funde (sort funde 'my-mengen-test))
       (setq funde (cdr funde))
-      ; Auf maximale Länge zuschneiden
+      ; Cut to maximum length
       (cond 
         ((>(length funde) max-antworten)
           (nbutlast funde (- (length funde) max-antworten))
         )
       )
       (setq antworten nil)
-      ; Satz-Id in Sätze umsetzen
+      ; Convert sentence id to sentence
       (setq anzahl-fragen 0)
       (setq anzahl-aussagen 0)
       (do ((ct 0 (+ 1 ct)))
         ((= ct (length funde)))
         (setq antworten (cons (append (get-phrase (fund-id (nth ct funde))) (list (fund-menge (nth ct funde)))) antworten))
-        ; Anzahl der Fragen und Aussagen zählen
+        ; Count number of questions and statements
         (cond
           ((equal (cadr (get-phrase (fund-id (nth ct funde)))) "a")
             (setq anzahl-aussagen (+ 1 anzahl-aussagen))
@@ -84,11 +84,11 @@
           )      
         )    
       )
-      ; Reihenfolge der antworten an die Reihenfolge der Funde anpassen
+      ; Align order of answers to order of discoveries
       (setq antworten (reverse antworten))    
-      ; Antworten nach Typ sortieren
+      ; Sort answers by type
       (setq antworten (sort antworten 'my-typ-test))
-      ; Anteil
+      ; Fraction
       (cond 
         ((not (= anzahl-fragen 0))
           (setq anteil-frage (round (/ prozent-fragen anzahl-fragen)))
@@ -105,7 +105,7 @@
           (setq anteil-frage 0)
         )
       )
-      ; Auswahlmöglichkeiten für zufällige Auswahl vorbereiten
+      ; Select choices for random selection
       (setq moeglichkeiten nil)
       (do ((ct1 0 (+ ct1 1)))
         ((= ct1 (length antworten)))
@@ -130,70 +130,70 @@
   )
 )
 
-; Alle Wörter in einer Liste suchen und Daten zusammenfügen
-(defun find-all-words-rec (woerter funde)
+; Find all words in a list and merge data
+(defun find-all-words-rec (words funde)
   (cond
-    ((equal (not woerter) nil)  
-      (setq funde (find-word (car woerter) funde))
-      (find-all-words-rec (cdr woerter) funde)
+    ((equal (not words) nil)  
+      (setq funde (find-word (car words) funde))
+      (find-all-words-rec (cdr words) funde)
     )
     (t funde)
   )
 )
 
-; Mein Test zum sortieren nach Menge
+; My test to sort by set
 (defun my-mengen-test (a b)
   (> (fund-menge a) (fund-menge b))
 )
 
-; Mein Test zum sortieren nach Typ
+; My test to sort by type
 (defun my-typ-test (a b)
   (string> (cadr a) (cadr b))
 )
 
-; Zeile an jedem Vorkommnis von Zeichen zerteilen und Liste bilden
-(defun cut-line-rec (zeichen zeile)
+; Cut and tokenize line
+(defun cut-line-rec (zeichen line)
   (cond 
-    ((not (search zeichen zeile))
-      (setq teile (cons zeile teile))
+    ((not (search zeichen line))
+      (setq parts (cons line parts))
     )
     (t
-      (setq teile (cons (subseq zeile 0 (search zeichen zeile)) teile))
-      (cut-line-rec zeichen (subseq zeile (+ (search zeichen zeile) 1) (length zeile)))
+      (setq parts (cons (subseq line 0 (search zeichen line)) parts))
+      (cut-line-rec zeichen (subseq line (+ (search zeichen line) 1) (length line)))
     )
   )
 )
 
-; Woerter-Liste in Daten einfügen
-(defun add-words-rec (id liste)
+; Add words to word list
+(defun add-words-rec (id list)
   (cond 
-    ((equal (not liste) nil)
-      (new-word (car liste) id)
-      (add-words-rec id (cdr liste))
+    ((equal (not list) nil)
+      (new-word (car list) id)
+      (add-words-rec id (cdr list))
     )
   )
 )
 
-; Die Unterhaltung führen
+; Do the talk
 (defun chat ()
   (do ((ct 0 0))
     (nil)
-      (setq zeile (read-line socket)) 
+      (setq line (read-line socket)) 
       (cond 
-        ((search "privmsg" (string-downcase zeile))
+        ((search "privmsg" (string-downcase line))
           (cond 
-            ((not (null (search "#" zeile)))
-              (setq zeile (subseq zeile (search "#" zeile) (length zeile)))
-              (setq zeile (subseq zeile (+ 1 (search " " zeile)) (length zeile)))
-              (setq zeile (string-trim '(#\:) zeile))
-              (setq antw (handle-phrase zeile))
+            ((not (null (search "#" line)))
+              (setq line (subseq line (search "#" line) (length line)))
+              (setq line (subseq line (+ 1 (search " " line)) (length line)))
+              (setq line (string-trim '(#\:) line))
+              (setq antw (handle-phrase line))
               (format socket "PRIVMSG ~A :~A~%" irc-channel antw)
             )
           )
         )
-        ((search "ping" (string-downcase zeile))
-          (setq zeile (subseq zeile 5 (length zeile)))
-          (format socket "PONG ~A~%" zeile)
+        ((search "ping" (string-downcase line))
+          (setq line (subseq line 5 (length line)))
+          (format socket "PONG ~A~%" line)
         )
       )
   )

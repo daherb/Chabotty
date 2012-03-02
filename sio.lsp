@@ -1,4 +1,4 @@
-; IRC verbinden
+; Coonnect IRC
 (defun irc-connect ()
   (setq socket (socket:socket-connect irc-port irc-server))
   (format socket "NICK ~A ~%" irc-nick)
@@ -6,14 +6,14 @@
   (setq ping nil)
   (do ((ct 0 0))
     (ping)
-      (setq zeile (read-line socket))  
+      (setq line (read-line socket))  
       (cond 
-        ((search "notice" (string-downcase zeile))
+        ((search "notice" (string-downcase line))
           nil
         )
-        ((search "ping" (string-downcase zeile))
-          (setq zeile (subseq zeile 5 (length zeile)))
-          (format socket "PONG ~A~%" zeile)          
+        ((search "ping" (string-downcase line))
+          (setq line (subseq line 5 (length line)))
+          (format socket "PONG ~A~%" line)          
           (setq ping t)
         )
       )
@@ -21,13 +21,14 @@
   (setq motd nil)
   (do ((ct 0 0))
     (motd)
-      (setq zeile (read-line socket))  
+      (setq line (read-line socket))  
       (cond 
-        ((search "end of /motd" (string-downcase zeile))
+        ((search "end of /motd" (string-downcase line))
           (sleep 2)  
           (format socket "JOIN ~A~%" irc-channel)
           (setq motd t)
         )
       )
   )  
+  (print "connected")
 )
