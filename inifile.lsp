@@ -1,5 +1,5 @@
 ; To-Do:
-; - String-‹berpr¸fung bei Dateinamen
+; - String-√úberpr√ºfung bei Dateinamen
 ; Grundstruktur der ini-Datei
 (defstruct abteilung
   name
@@ -15,16 +15,16 @@
 
 ; ini-Datei auslesen
 (defun ini-init (dateiname)
-  ; Datei ˆffnen
+  ; Datei √∂ffnen
   (setq inidatei (open dateiname :direction :input :if-does-not-exist :error))
   ; Alle Zeilen auslesen
   (do ((zeile nil (read-line inidatei nil inidatei)))
-    ; Bei Dateiende Datei schlieﬂen
+    ; Bei Dateiende Datei schlie√üen
     ((eq zeile inidatei) (close inidatei))
-      ; ‹berpf¸fen ob Zeile Inhalt hat
+      ; √úberpf√ºfen ob Zeile Inhalt hat
       (cond 
         ((equal (not zeile) nil)
-          ; ‹berpr¸fen ob Zeile mit [ beginnt --> Abteilungsname
+          ; √úberpr√ºfen ob Zeile mit [ beginnt --> Abteilungsname
           (cond ((eq (char zeile 0) #\[)           
             (adjust-array abteilungen (+ (array-total-size abteilungen) 1))
             (setf (aref abteilungen (- (array-total-size abteilungen) 1))
@@ -34,7 +34,7 @@
               )
             )          
                 )
-          ; Sonst enth‰llt die Zeile einen Wert 
+          ; Sonst enth√§llt die Zeile einen Wert 
                 (t
             '(print (array-total-size (abteilung-werte (aref abteilungen (- (array-total-size abteilungen) 1)))))
             (setq kurz (abteilung-werte (aref abteilungen (- (array-total-size abteilungen) 1))))

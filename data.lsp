@@ -2,13 +2,13 @@
 ; Konfiguration laden
 (load "config.lsp")
 
-; Struktur für die Suchfunde
+; Struktur fÃ¼r die Suchfunde
 (defstruct fund
   id
   menge
 )
 
-; Saetze und Wörter aus den Dateien laden
+; Saetze und WÃ¶rter aus den Dateien laden
 (defun read-data (woerter saetze)
   (setq lsaetze nil)
   (setq lwoerter nil)
@@ -31,7 +31,7 @@
   (close datei)
 )
 
-; Neuen Satz einfügen
+; Neuen Satz einfÃ¼gen
 (defun new-phrase (id satz typ)
   (setq schonda nil)
   (do ((ct 0 (+ 1 ct)))
@@ -53,10 +53,10 @@
   )
 )
 
-; Neues Wort einfügen
+; Neues Wort einfÃ¼gen
 (defun new-word (wort id)
   (setq schwarz nil)
-  ; Überprüfen ob Wort in Blacklist ist
+  ; ÃœberprÃ¼fen ob Wort in Blacklist ist
   (do ((i 0 (+ 1 i)))
     ((equal i (length blacklist)))
       (cond 
@@ -113,7 +113,7 @@
   )
 )
 
-; Funktion mit selbsterklärendem Namen
+; Funktion mit selbsterklÃ¤rendem Namen
 (defun look-if-there-is-the-phrase-and-add-it-if-it-does-not-exist-or-add-one-to-the-amount-of-places-of-discovery-in-a-recursive-way (id funde alles treffer) 
   (cond 
     ((not (null funde))      

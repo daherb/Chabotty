@@ -1,5 +1,5 @@
 ; To-Do:
-; - Menge der übereinstimmungen in Auswahl einbauen
+; - Menge der Ã¼bereinstimmungen in Auswahl einbauen
 ; Datenstrukturen laden
 
 (load "config.lsp")
@@ -8,7 +8,7 @@
 
 (read-data "woerter.lst" "saetze.lst")
 
-; Eingabedaten verarbeiten, in Datenstruktur einfügen und Kriterien für Antwort liefern
+; Eingabedaten verarbeiten, in Datenstruktur einfÃ¼gen und Kriterien fÃ¼r Antwort liefern
 (defun handle-phrase (zeile)
   (format t zeile)
   ; Satztyp bestimmen: Aussage oder Frage
@@ -26,12 +26,12 @@
   (setq teile nil)
   ; Zeile zerteilen
   (cut-line-rec " " zeile2)
-  ; Satz in Daten einfügen
-  ; Wenn erfolgreich Wörter einfuegen
+  ; Satz in Daten einfÃ¼gen
+  ; Wenn erfolgreich WÃ¶rter einfuegen
   (new-phrase id zeile typ)
   (cond
     ((not schonda)
-      ; Woerter in Daten einfügen
+      ; Woerter in Daten einfÃ¼gen
       (add-words-rec id teile)
       ; Daten speichern
       (save-data "woerter.lst" "saetze.lst")
@@ -44,7 +44,7 @@
 ; Passende antworden suchen
 (defun answer (teile)
   (setq funde nil)
-  ; Vorkommnisse aller Wörter suchen
+  ; Vorkommnisse aller WÃ¶rter suchen
   (setq funde (find-all-words-rec teile funde))
   (cond 
     ; Wenn keine Antwort vorhanden Standartantwort ausgeben
@@ -59,20 +59,20 @@
       ; Gunde nach Menge suchen
       (setq funde (sort funde 'my-mengen-test))
       (setq funde (cdr funde))
-      ; Auf maximale Länge zuschneiden
+      ; Auf maximale LÃ¤nge zuschneiden
       (cond 
         ((>(length funde) max-antworten)
           (nbutlast funde (- (length funde) max-antworten))
         )
       )
       (setq antworten nil)
-      ; Satz-Id in Sätze umsetzen
+      ; Satz-Id in SÃ¤tze umsetzen
       (setq anzahl-fragen 0)
       (setq anzahl-aussagen 0)
       (do ((ct 0 (+ 1 ct)))
         ((= ct (length funde)))
         (setq antworten (cons (append (get-phrase (fund-id (nth ct funde))) (list (fund-menge (nth ct funde)))) antworten))
-        ; Anzahl der Fragen und Aussagen zählen
+        ; Anzahl der Fragen und Aussagen zÃ¤hlen
         (cond
           ((equal (cadr (get-phrase (fund-id (nth ct funde)))) "a")
             (setq anzahl-aussagen (+ 1 anzahl-aussagen))
@@ -103,7 +103,7 @@
           (setq anteil-frage 0)
         )
       )
-      ; Auswahlmöglichkeiten für zufällige Auswahl vorbereiten
+      ; AuswahlmÃ¶glichkeiten fÃ¼r zufÃ¤llige Auswahl vorbereiten
       (setq moeglichkeiten nil)
       (do ((ct1 0 (+ ct1 1)))
         ((= ct1 (length antworten)))
@@ -128,7 +128,7 @@
   )
 )
 
-; Alle Wörter in einer Liste suchen und Daten zusammenfügen
+; Alle WÃ¶rter in einer Liste suchen und Daten zusammenfÃ¼gen
 (defun find-all-words-rec (woerter funde)
   (cond
     ((equal (not woerter) nil)  
@@ -162,7 +162,7 @@
   )
 )
 
-; Woerter-Liste in Daten einfügen
+; Woerter-Liste in Daten einfÃ¼gen
 (defun add-words-rec (id liste)
   (cond 
     ((equal (not liste) nil)
@@ -172,7 +172,7 @@
   )
 )
 
-; Die Unterhaltung führen
+; Die Unterhaltung fÃ¼hren
 (defun chat ()
   (do ((ct 0 0))
     (nil)
